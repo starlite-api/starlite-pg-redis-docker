@@ -10,15 +10,22 @@ python = "^3.10"
 alembic = "*"
 asyncpg = "*"
 passlib = {extras = ["bcrypt"], version = "*"}
-psycopg2 = "*"
 python-dotenv = "*"
 sqlalchemy = "*"
 starlite = "*"
 uvicorn = "*"
+aioredis = "^2.0.1"
+gunicorn = "^20.1.0"
+databases = "^0.5.5"
+uvloop = "^0.16.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
 pytest-dotenv = "*"
+
+[tool.poetry.scripts]
+dpsql = './scripts.psql:main'
+dredis = './scripts.redis_cli:main'
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -7,3 +7,7 @@ type-checking-fastapi-enabled = True
 type-checking-pydantic-enabled-baseclass-passlist = NamedTuple, TypedDict, Protocol
 type-checking-exempt-modules = typing
 enable-extensions = TC, TC2
+per-file-ignores =
+    */__init__.py:F401,F403
+    scripts/*.py:T001
+    */conftest.py:E402

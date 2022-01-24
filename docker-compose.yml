@@ -1,35 +1,62 @@
 version: '3.9'
+
+volumes:
+    db_data:
+        name: db_data
+    cache_data:
+        name: cache_data
+
 services:
-  db:
-    container_name: backend_db
-    image: postgres:latest
+  redis:
+    container_name: "${PROJECT_NAME}-redis"
+    image: redis:6.2.5-alpine
+    command: redis-server --appendonly yes
     volumes:
-      - postgres_data:/var/lib/postrgresql/data/
+      - cache_data:/var/lib/redis/data
     ports:
-      - '5432:5432'
+      - '127.0.0.1:6380:6380'
+
+  postgres:
+    container_name: "${PROJECT_NAME}-postgres"
+    image: postgres:latest
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ~/.psqlrc:/root/.psqlrc:ro  # client psql config
+      - ~/.psql_history:/root/.psql_history  # client psql history
+    ports:
+      - '127.0.0.1:5433:5433'
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=pg_pass
-      - POSTGRES_DB=backend
-  app:
-    container_name: app
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pg_pass
+      POSTGRES_DB: backend
+
+  web:
+    container_name: "${PROJECT_NAME}-web"
+    restart: always
+    entrypoint: scripts/entrypoint.sh
+    command: "uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     build:
       context: .
       dockerfile: Dockerfile
+      target: dependencies
       args:
         INSTALL_ARGS: "--no-root"
-    command: bash -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
-    volumes:
-      - ./app:/app/app/:cached
-      - ./alembic:/app/alembic/:cached
     ports:
-      - '8000:8000'
+      - '127.0.0.1:8001:8000'
+    volumes:
+      - '.:/app'
     depends_on:
-      - db
+      - postgres
+      - redis
     env_file:
       - .env
     environment:
-      - 'POSTGRES_SERVER=db'
+      POSTGRES_SERVER: postgres
+      # Used by entrypoint.sh
+      DATABASE_URL: "postgresql+asyncpg://postgres:pg_pass@${PROJECT_NAME}-postgres/backend"
+      REDIS_URL: "redis://${PROJECT_NAME}-redis"
+
   pgadmin:
     container_name: pgadmin
     image: dpage/pgadmin4
@@ -40,6 +67,3 @@ services:
       - '5050:80'
     depends_on:
       - db
-
-volumes:
-  postgres_data:

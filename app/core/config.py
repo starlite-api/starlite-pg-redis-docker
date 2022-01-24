@@ -1,8 +1,8 @@
 import os
 import secrets
-from typing import Any
 
-from pydantic import AnyHttpUrl, BaseSettings, PostgresDsn, validator
+from databases import DatabaseURL
+from pydantic import AnyHttpUrl, BaseSettings, validator
 
 
 class Settings(BaseSettings):
@@ -35,23 +35,24 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
-    DATABASE_URI: PostgresDsn | None = None
+    DATABASE_URL: DatabaseURL
 
-    @validator("DATABASE_URI", pre=True)
-    def assemble_db_connection(cls, v: str | None, values: dict[str, Any]) -> Any:
-        if isinstance(v, str):
-            return v
-        return PostgresDsn.build(
-            scheme="postgresql+asyncpg",
-            user=values.get("POSTGRES_USER"),
-            password=values.get("POSTGRES_PASSWORD"),
-            host=values.get("POSTGRES_SERVER"),
-            path=f"/{values.get('POSTGRES_DB') or ''}",
-        )
+    @validator("DATABASE_URL", pre=True)
+    def set_database_url(cls, v: str | None) -> DatabaseURL:
+        if not v:
+            raise ValueError("Missing DATABASE_URL")
+        if "postgresql" not in v and "postgres" in v:
+            # Heroku supplies DATABASE_URL with the wrong driver for SQLAlchemy
+            v = v.replace("postgres", "postgresql")
+        if "asyncpg" not in v:
+            v = v.replace("postgresql", "postgresql+asyncpg")
+        return DatabaseURL(v)
 
     FIRST_SUPERUSER: str
     FIRST_SUPERUSER_PASSWORD: str
     USERS_OPEN_REGISTRATION: bool = False
+    TESTING: bool = False
+    REDIS_URL: str
 
 
 settings = Settings()

@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" project-jdk-name="Python 3.10 (starlite-example-api-oEe1_jxD-py3.10)" project-jdk-type="Python SDK">
-    <output url="file://$PROJECT_DIR$/out" />
-  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.10 (starlite-demo2)" project-jdk-type="Python SDK" />
 </project>

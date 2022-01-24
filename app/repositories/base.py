@@ -8,7 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
 
-from app.db import get_postgres_connection
+from app.core.state import database
 from app.exceptions import RepositoryException
 from app.models.base import Base
 
@@ -20,7 +20,7 @@ class AbstractBaseRepository(ABC, Generic[T]):
 
     @staticmethod
     def session_maker() -> sessionmaker:
-        engine = get_postgres_connection()
+        engine = database
         return sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
     @classmethod
