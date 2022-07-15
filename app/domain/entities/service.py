@@ -4,19 +4,18 @@ from starlite import Dependency, Parameter
 
 from app import core
 
-from . import model, schema
+from . import schema
 from .repository import Repository
 
 
-class Service(core.Service[model.Entity, Repository, schema.Entity]):
+class Service(core.Service[Repository, schema.Entity]):
     """
     Read only service for the root `entity` domain. CRUD operations must be performed through a
     provider's subdomain.
     """
 
-    model = model.Entity
     repository_type = Repository
-    schema = schema.Entity
+    schema_type = schema.Entity
 
     @classmethod
     async def new(

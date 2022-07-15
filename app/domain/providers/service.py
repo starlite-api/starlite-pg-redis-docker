@@ -4,14 +4,13 @@ from starlite import Dependency, Parameter
 
 from app import core
 
-from . import model, schema
+from . import schema
 from .repository import Repository
 
 
-class Service(core.Service[model.Provider, Repository, schema.Provider]):
-    model = model.Provider
+class Service(core.Service[Repository, schema.Provider]):
     repository_type = Repository
-    schema = schema.Provider
+    schema_type = schema.Provider
 
     @classmethod
     async def new(

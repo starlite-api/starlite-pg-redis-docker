@@ -2,21 +2,18 @@ from typing import Generic, TypeVar
 from uuid import UUID
 
 from .dependencies import Filters
-from .model import Base
 from .repository import Repository
 from .schema import Schema
 
 T = TypeVar("T")
-T_model = TypeVar("T_model", bound=Base)
 T_repository = TypeVar("T_repository", bound=Repository)
 T_schema = TypeVar("T_schema", bound=Schema)
 T_service = TypeVar("T_service", bound="Service")
 
 
-class Service(Generic[T_model, T_repository, T_schema]):
-    model: type[T_model]
+class Service(Generic[T_repository, T_schema]):
     repository_type: type[T_repository]
-    schema: type[T_schema]
+    schema_type: type[T_schema]
 
     def __init__(
         self,
@@ -45,7 +42,7 @@ class Service(Generic[T_model, T_repository, T_schema]):
         T_Schema
         """
         model = await self.repository.create(data.dict())
-        return self.schema.from_orm(model)
+        return self.schema_type.from_orm(model)
 
     async def list(self) -> list[T_schema]:
         """
@@ -55,8 +52,8 @@ class Service(Generic[T_model, T_repository, T_schema]):
         -------
         list[T_Schema]
         """
-        models: list[T_model] = await self.repository.scalars()  # type:ignore[assignment]
-        return [self.schema.from_orm(i) for i in models]
+        models = await self.repository.scalars()
+        return [self.schema_type.from_orm(i) for i in models]
 
     async def update(self, data: T_schema) -> T_schema:
         """
@@ -71,7 +68,7 @@ class Service(Generic[T_model, T_repository, T_schema]):
         T_Schema
         """
         model = self.repository.update(data.dict())
-        return self.schema.from_orm(model)
+        return self.schema_type.from_orm(model)
 
     async def upsert(self, data: T_schema) -> T_schema:
         """
@@ -86,7 +83,7 @@ class Service(Generic[T_model, T_repository, T_schema]):
         T_Schema
         """
         model = await self.repository.upsert(data.dict())
-        return self.schema.from_orm(model)
+        return self.schema_type.from_orm(model)
 
     async def show(self) -> T_schema:
         """
@@ -97,7 +94,7 @@ class Service(Generic[T_model, T_repository, T_schema]):
         T_Schema
         """
         model = await self.repository.scalar()
-        return self.schema.from_orm(model)
+        return self.schema_type.from_orm(model)
 
     async def destroy(self) -> T_schema:
         """
@@ -108,4 +105,4 @@ class Service(Generic[T_model, T_repository, T_schema]):
         T_Schema
         """
         model = self.repository.delete()
-        return self.schema.from_orm(model)
+        return self.schema_type.from_orm(model)
