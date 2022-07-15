@@ -71,7 +71,7 @@ show_error_codes = true
 warn_redundant_casts = true
 warn_return_any = true
 warn_unused_ignores = true
-plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
+plugins = ["pydantic.mypy"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=app -v --doctest-modules --doctest-glob=*.md --ignore=gunicorn.conf.py --ignore=alembic"

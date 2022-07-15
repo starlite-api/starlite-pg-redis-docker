@@ -1,9 +1,9 @@
-from typing import Any
+from typing import Any, Optional
 from uuid import UUID
 
-from sqlalchemy import Column, Enum, ForeignKey, Integer, String, text
+from sqlalchemy import Enum, ForeignKey, text
 from sqlalchemy.dialects import postgresql as pg
-from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.domain.model import InProviderDomain
 
@@ -11,13 +11,9 @@ from .types import EntitiesEnum
 
 
 class Entity(InProviderDomain):
-    name: Mapped[str] = Column(String, nullable=False)
-    type: Mapped[EntitiesEnum] = Column(Enum(EntitiesEnum, create_constraint=False), nullable=False)
-    owner_id: UUID | None = Column(  # type:ignore[misc]
-        pg.UUID, ForeignKey("entity.id"), index=True, nullable=True
-    )
+    name: Mapped[str]
+    type: Mapped[EntitiesEnum] = mapped_column(Enum(EntitiesEnum, create_constraint=False))
+    owner_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey("entity.id"), index=True)
+    extra: Mapped[dict[str, Any]] = mapped_column(pg.JSONB, server_default=text("'{}'::jsonb"))
     # ryno id is an implementation detail, not to be exposed to clients.
-    ryno_id: Mapped[int] = Column(Integer, index=True, nullable=True)
-    extra: Mapped[dict[str, Any]] = Column(
-        pg.JSONB, nullable=False, server_default=text("'{}'::jsonb")
-    )
+    ryno_id: Mapped[Optional[int]] = mapped_column(index=True)

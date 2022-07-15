@@ -2,10 +2,10 @@ import re
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import Column, DateTime, MetaData
+from sqlalchemy import MetaData
 from sqlalchemy.dialects import postgresql as pg
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm.decl_api import as_declarative, declared_attr
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm.decl_api import declared_attr
 
 convention = {
     "ix": "ix_%(column_0_label)s",
@@ -17,21 +17,22 @@ convention = {
 meta = MetaData(naming_convention=convention)
 
 
-@as_declarative(metadata=meta)
-class Base:
+class Base(DeclarativeBase):
     """
     Base for all SQLAlchemy declarative models.
     """
 
     __name__: str
 
+    metadata = meta
     table_name_pattern = re.compile(r"(?<!^)(?=[A-Z])")
+    type_annotation_map = {UUID: pg.UUID}
 
     # noinspection PyMethodParameters
-    @declared_attr
-    def __tablename__(cls) -> str:  # pylint: disable=no-self-argument
+    @declared_attr  # type:ignore[arg-type]
+    def __tablename__(cls) -> str:  # type:ignore[override]  # pylint: disable=no-self-argument
         return re.sub(cls.table_name_pattern, "_", cls.__name__).lower()
 
-    id: Mapped[UUID] = Column(pg.UUID, default=uuid4, primary_key=True)  # type:ignore[misc]
-    created_date: Mapped[datetime] = Column(DateTime, default=datetime.now, nullable=False)
-    updated_date: Mapped[datetime] = Column(DateTime, default=datetime.now, nullable=False)
+    id: Mapped[UUID] = mapped_column(default=uuid4, primary_key=True)
+    created_date: Mapped[datetime] = mapped_column(default=datetime.now)
+    updated_date: Mapped[datetime] = mapped_column(default=datetime.now)
